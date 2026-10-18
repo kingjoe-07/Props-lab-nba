@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Props Lab NBA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: outil mobile à onglets, une colonne, résumé avant détail */
+:root{
+  --bg:#f3f2ef; --panel:#ffffff; --ink:#1b1e24; --muted:#5d636e; --line:#dcdad4;
+  --accent:#b8501d; --accent-ink:#ffffff; --soft:#f6e7dd;
+  --good:#1f7a4c; --good-bg:#e3f2e9; --warn:#8a5a00; --warn-bg:#fbefd2; --bad:#a3302a; --bad-bg:#f8e2df;
+  --font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-data:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14161a; --panel:#1d2026; --ink:#eceae6; --muted:#a3a7ae; --line:#30343b;
+  --accent:#e0743c; --accent-ink:#1b1e24; --soft:#3a2a20;
+  --good:#5fc48f; --good-bg:#183327; --warn:#e8b54d; --warn-bg:#382c12; --bad:#ef8a80; --bad-bg:#3d1f1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14161a; --panel:#1d2026; --ink:#eceae6; --muted:#a3a7ae; --line:#30343b;
+  --accent:#e0743c; --accent-ink:#1b1e24; --soft:#3a2a20;
+  --good:#5fc48f; --good-bg:#183327; --warn:#e8b54d; --warn-bg:#382c12; --bad:#ef8a80; --bad-bg:#3d1f1c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--font-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto}
+header{padding-block:20px 8px}
+h1{font:700 2.1rem/1 var(--font-display);letter-spacing:.01em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:.92rem;margin:6px 0 0}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;padding-block:10px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{font:600 1rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;background:none;border:0;color:var(--muted);padding:8px 12px;border-radius:6px;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+section{display:flex;flex-direction:column;gap:16px;padding-top:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+h2{font:700 1.35rem/1.1 var(--font-display);margin:0;letter-spacing:.01em}
+h3{font:600 1.05rem/1.2 var(--font-display);margin:0;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+@media (max-width:420px){.grid.g-auto{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted);min-width:0}
+input,select{font:16px var(--font-data);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.check{flex-direction:row;align-items:center;gap:8px;font-size:.92rem;color:var(--ink)}
+.check input{width:auto}
+.full{grid-column:1/-1}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button.b{font:600 .95rem var(--font-body);border-radius:8px;padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+button.b.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.verdict{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.verdict .big{font:700 1.55rem/1.1 var(--font-display);letter-spacing:.01em}
+.v-good{background:var(--good-bg);color:var(--good)}
+.v-warn{background:var(--warn-bg);color:var(--warn)}
+.v-none{background:var(--soft);color:var(--ink)}
+.v-bad{background:var(--bad-bg);color:var(--bad)}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.m{background:var(--bg);border-radius:8px;padding:10px 12px}
+.m span{display:block;font-size:.78rem;color:var(--muted)}
+.m b{font:600 1.15rem var(--font-data);font-variant-numeric:tabular-nums}
+ul.list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+.flag{font-size:.88rem;padding:8px 10px;border-radius:6px}
+.flag.warn{background:var(--warn-bg);color:var(--warn)}
+.flag.bad{background:var(--bad-bg);color:var(--bad)}
+.flag.info{background:var(--soft);color:var(--ink)}
+.chartbox{overflow-x:auto}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font:600 .8rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.num{font-family:var(--font-data);text-align:right}
+.rec{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--panel)}
+.rec-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rec-top b{font:600 1.05rem var(--font-display);letter-spacing:.02em}
+.pill{font:600 .75rem var(--font-body);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.p-good{background:var(--good-bg);color:var(--good)}.p-warn{background:var(--warn-bg);color:var(--warn)}.p-none{background:var(--soft);color:var(--ink)}.p-bad{background:var(--bad-bg);color:var(--bad)}
+.small{font-size:.85rem;color:var(--muted)}
+.mono{font-family:var(--font-data)}
+textarea{width:100%;min-height:120px;font:13px var(--font-data);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.empty{text-align:left;color:var(--muted);display:flex;flex-direction:column;gap:10px}
+p{margin:0}
+.prose{display:flex;flex-direction:column;gap:10px;max-width:65ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Props Lab NBA</h1>
+  <p class="sub">Analyse avant match des props joueurs (points, rebonds, passes, PRA). Modèle <span class="mono" id="ver"></span> · aucune promesse de gain.</p>
+</header>
+<nav role="tablist" aria-label="Sections">
+  <button role="tab" id="t-analyse" aria-selected="true" data-tab="analyse">Analyse</button>
+  <button role="tab" id="t-hist" aria-selected="false" data-tab="hist">Historique</button>
+  <button role="tab" id="t-valid" aria-selected="false" data-tab="valid">Validation</button>
+  <button role="tab" id="t-meth" aria-selected="false" data-tab="meth">Méthode</button>
+</nav>
+
+<!-- ANALYSE -->
+<section id="analyse">
+  <p class="flag info">Valeurs pré-remplies : exemple fictif. Remplace-les par tes données avant d'enregistrer.</p>
+  <div class="card">
+    <h2>Match et marché</h2>
+    <div class="grid g-auto">
+      <label>Joueur<input id="f-player" value="Joueur exemple"></label>
+      <label>Adversaire<input id="f-opp" value="Équipe exemple"></label>
+      <label>Début du match<input id="f-tip" type="datetime-local"></label>
+      <label>Stat<select id="f-stat"><option value="pts">Points</option><option value="reb">Rebonds</option><option value="ast">Passes</option><option value="pra">PRA</option></select></label>
+      <label>Ligne<input id="f-line" type="number" step="0.5" inputmode="decimal" value="15.5"></label>
+      <label>Bookmaker<input id="f-book" value=""></label>
+      <label>Cote Over<input id="f-co" type="number" step="0.01" inputmode="decimal" value="1.87"></label>
+      <label>Cote Under<input id="f-cu" type="number" step="0.01" inputmode="decimal" value="1.93"></label>
+      <label>Total du match<input id="f-tot" type="number" step="0.5" inputmode="decimal" value="228"></label>
+      <label>Écart (spread, valeur absolue)<input id="f-spr" type="number" step="0.5" inputmode="decimal" value="6.5"></label>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Joueur et rôle</h2>
+    <div class="grid g-auto">
+      <label>Taux saison (stat / minute)<input id="f-rs" type="number" step="0.01" inputmode="decimal" value="0.55"></label>
+      <label>Matchs joués (saison de référence)<input id="f-ns" type="number" step="1" inputmode="numeric" value="62"></label>
+      <label>Taux 10 derniers matchs (/ min)<input id="f-rr" type="number" step="0.01" inputmode="decimal" value="0.62"></label>
+      <label>Minutes projetées<input id="f-min" type="number" step="0.5" inputmode="decimal" value="28"></label>
+      <label>Écart-type des minutes<input id="f-sd" type="number" step="0.5" inputmode="decimal" value="4"></label>
+      <label>Source des minutes<select id="f-msrc"><option>Rotowire</option><option>Journaliste d'équipe</option><option>Ma propre estimation</option><option>Autre</option></select></label>
+      <label class="check full"><input type="checkbox" id="f-b2b"> 2e match d'un back-to-back</label>
+      <label class="check full"><input type="checkbox" id="f-abs"> Coéquipier important absent (confirmé)</label>
+      <label class="full">Heure de la dernière vérification (cotes, blessures, minutes)<input id="f-checked" type="datetime-local"></label>
+    </div>
+    <div class="btns"><button class="b primary" id="btn-run">Analyser</button></div>
+  </div>
+  <div id="out"></div>
+</section>
+
+<!-- HISTORIQUE -->
+<section id="hist" hidden>
+  <div id="hist-list"></div>
+  <div class="card">
+    <h2>Sauvegarde</h2>
+    <p class="small">Les analyses restent seulement dans ce navigateur. Copie régulièrement la sauvegarde (JSON) ou le CSV ailleurs.</p>
+    <div class="btns">
+      <button class="b" id="btn-json">Copier la sauvegarde JSON</button>
+      <button class="b" id="btn-csv">Copier le CSV</button>
+      <button class="b" id="btn-import">Importer depuis le texte collé</button>
+      <button class="b" id="btn-clear">Tout effacer</button>
+    </div>
+    <textarea id="io" aria-label="Zone d'export et d'import" placeholder="Colle ici une sauvegarde JSON pour l'importer."></textarea>
+    <p class="small" id="io-msg" role="status"></p>
+  </div>
+</section>
+
+<!-- VALIDATION -->
+<section id="valid" hidden><div id="valid-out"></div></section>
+
+<!-- METHODE -->
+<section id="meth" hidden>
+  <div class="card prose">
+    <h2>Comment le modèle calcule</h2>
+    <ul class="list">
+      <li><b>Taux</b> : 70 % taux saison + 30 % taux récent. Pondération choisie d'avance, à recalibrer après 150 résultats au minimum.</li>
+      <li><b>Minutes</b> : loi normale autour de ta projection. −1,5 min en back-to-back. Risque de blowout = (écart − 5) × 3,5 %, plafonné à 35 % ; un blowout retire 20 % des minutes.</li>
+      <li><b>Rythme</b> : total du match ÷ 228 (total de référence, à ajuster chaque saison).</li>
+      <li><b>Absence d'un coéquipier</b> : hausse d'usage de 8 % (points), 6 % (passes, PRA), 3 % (rebonds). Hypothèse, non mesurée.</li>
+      <li><b>Distribution</b> : binomiale négative (Poisson-gamma), 10 000 tirages avec graine fixe : mêmes données, même résultat.</li>
+      <li><b>Incertitude</b> : le taux saison a une erreur d'échantillonnage. On relance la simulation avec le taux bas et haut (±1,96 erreur-type). La plage affichée vient de là.</li>
+      <li><b>Marché</b> : marge retirée proportionnellement (méthode multiplicative).</li>
+      <li><b>Verdict</b> : opportunité seulement si l'avantage atteint 5 points <i>et</i> que le bas de la plage reste au-dessus de la probabilité du marché. Sinon : aucune opportunité démontrée.</li>
+      <li><b>Mise</b> : quart de Kelly, bornée entre 1 et 3 % de la bankroll.</li>
+    </ul>
+    <h2>Règles anti-fuite</h2>
+    <ul class="list">
+      <li>Une analyse enregistrée est figée : seules les données post-match (résultat, cote de fermeture) s'ajoutent ensuite.</li>
+      <li>Une analyse créée après le début du match est marquée « post-match » et exclue de la validation.</li>
+      <li>Chaque analyse garde la version du modèle. Les stats de validation se lisent par version.</li>
+    </ul>
+    <h2>Limites connues</h2>
+    <ul class="list">
+      <li>Avant match seulement. Le direct n'est pas modélisé.</li>
+      <li>Pas de données en direct : tout est saisi à la main, la qualité dépend de tes sources.</li>
+      <li>L'adversaire n'entre que par le total et l'écart, pas par les confrontations poste à poste.</li>
+      <li>Pas de modèle de double-double : il exige de simuler deux stats corrélées.</li>
+    </ul>
+  </div>
+</section>
+</div>
+
+<script>
+// CORE-START
+const MODEL_VERSION = "1.0.0";
+const LEAGUE_TOTAL = 228;
+const STATS = {
+  pts:{label:"Points",disp:8,usg:0.08},
+  reb:{label:"Rebonds",disp:15,usg:0.03},
+  ast:{label:"Passes",disp:10,usg:0.06},
+  pra:{label:"PRA",disp:12,usg:0.06}
+};
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function gn(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function gam(k,r){if(k<1)return gam(k+1,r)*Math.pow(r(),1/k);const d=k-1/3,c=1/Math.sqrt(9*d);for(;;){const x=gn(r);let v=1+c*x;if(v<=0)continue;v=v*v*v;if(Math.log(r())<0.5*x*x+d-d*v+d*Math.log(v))return d*v}}
+function poi(l,r){if(l<=0)return 0;if(l>500)return Math.max(0,Math.round(l+Math.sqrt(l)*gn(r)));const L=Math.exp(-l);let k=0,p=1;do{k++;p*=r()}while(p>L);return k-1}
+function devig(co,cu){const a=1/co,b=1/cu;return{over:a/(a+b),under:b/(a+b),margin:a+b-1}}
+function blendRate(rs,rr){return 0.7*rs+0.3*rr}
+function blowoutProb(spread){return clamp((Math.abs(spread)-5)*0.035,0,0.35)}
+function relSE(rate,minutes,disp,n){const mu=rate*minutes;if(mu<=0||n<=0)return Infinity;const v=mu+mu*mu/disp;return Math.sqrt(v/n)/mu}
+function simulate(p,N,seed){
+  const r=mulberry32(seed);const hist=new Array(81).fill(0);let over=0,push=0,sum=0;
+  for(let i=0;i<N;i++){
+    let m=p.minutes+p.sd*gn(r);if(r()<p.pBlow)m*=0.8;m=clamp(m,0,48);
+    const lam=p.rate*p.pace*m;const x=poi(gam(p.disp,r)*lam/p.disp,r);
+    sum+=x;if(x>p.line)over++;else if(x===p.line)push++;hist[Math.min(80,x)]++;
+  }
+  return{pOver:over/N,pPush:push/N,mean:sum/N,hist};
+}
+function kellyStake(p,odds){const f=(p*odds-1)/(odds-1);if(!(f>0))return 0;return clamp(f/4*100,1,3)}
+function analyze(inp,now){
+  const st=STATS[inp.stat];const issues=[],warns=[];
+  const need=[["line","ligne"],["co","cote Over"],["cu","cote Under"],["rs","taux saison"],["ns","matchs de la saison"],["rr","taux récent"],["min","minutes projetées"],["sd","écart-type des minutes"],["tot","total du match"],["spr","écart"]];
+  need.forEach(([k,n])=>{if(!(typeof inp[k]==="number"&&isFinite(inp[k])))issues.push("Champ manquant : "+n)});
+  if(!inp.tip)issues.push("Champ manquant : début du match");
+  if(issues.length)return{status:"insufficient",issues,warns};
+  if(inp.co<=1||inp.cu<=1)issues.push("Cotes invalides (doivent dépasser 1,00)");
+  if(inp.ns<15)issues.push("Moins de 15 matchs dans la saison de référence : taux trop instable");
+  if(inp.min<=0||inp.min>48)issues.push("Minutes projetées hors limites");
+  if(inp.rs<=0)issues.push("Taux saison nul ou négatif");
+  if(issues.length)return{status:"insufficient",issues,warns};
+  const tip=new Date(inp.tip).getTime(),checked=inp.checked?new Date(inp.checked).getTime():NaN;
+  const postMatch=now>=tip;
+  if(postMatch)warns.push({lvl:"bad",t:"Le match a déjà commencé : cette analyse sera exclue de la validation."});
+  if(!isFinite(checked))warns.push({lvl:"warn",t:"Heure de vérification non indiquée : fraîcheur des données inconnue."});
+  else if(now-checked>6*3600e3)warns.push({lvl:"warn",t:"Données vérifiées il y a plus de 6 h : revérifie cotes, blessures et minutes."});
+  else if(tip-checked>3*3600e3&&!postMatch)warns.push({lvl:"warn",t:"Vérification faite plus de 3 h avant le match : le rapport de blessures du jour peut tout changer."});
+  if(inp.msrc==="Ma propre estimation")warns.push({lvl:"warn",t:"Minutes estimées par toi : principale source d'erreur du modèle."});
+  const mk=devig(inp.co,inp.cu);
+  if(mk.margin>0.1)warns.push({lvl:"warn",t:"Marge du bookmaker élevée ("+(mk.margin*100).toFixed(1)+" %)."});
+  if(Math.abs(inp.rr-inp.rs)/inp.rs>0.3)warns.push({lvl:"warn",t:"Forme récente très différente de la saison : rôle peut-être changé."});
+  const rate=blendRate(inp.rs,inp.rr)*(inp.abs?1+st.usg:1);
+  const pace=inp.tot/LEAGUE_TOTAL,pBlow=blowoutProb(inp.spr),minutes=inp.min-(inp.b2b?1.5:0);
+  const base={rate,pace,pBlow,minutes,sd:inp.sd,disp:st.disp,line:inp.line};
+  const seed=hashStr(JSON.stringify([inp.stat,inp.line,inp.rs,inp.rr,inp.ns,inp.min,inp.sd,inp.tot,inp.spr,inp.b2b,inp.abs]));
+  const sim=simulate(base,10000,seed);
+  const se=relSE(blendRate(inp.rs,inp.rr),inp.min,st.disp,inp.ns);
+  const lo=simulate({...base,rate:rate*Math.max(0.05,1-1.96*se)},6000,seed^0x9e37);
+  const hi=simulate({...base,rate:rate*(1+1.96*se)},6000,seed^0x7f4a);
+  const pOver=sim.pOver,pUnder=1-sim.pOver-sim.pPush;
+  const band={overLo:lo.pOver,overHi:hi.pOver,underLo:1-hi.pOver-hi.pPush,underHi:1-lo.pOver-lo.pPush};
+  const edgeO=pOver-mk.over,edgeU=pUnder-mk.under;
+  let side=null;
+  if(edgeO>=0.05&&band.overLo>mk.over)side="over";
+  else if(edgeU>=0.05&&band.underLo>mk.under)side="under";
+  const pSide=side==="over"?pOver:side==="under"?pUnder:null,oddsSide=side==="over"?inp.co:side==="under"?inp.cu:null;
+  const ev=side?pSide*oddsSide-1:null,stake=side?kellyStake(pSide,oddsSide):0;
+  return{status:side?"opportunity":"none",side,issues,warns,postMatch,market:mk,pOver,pUnder,pPush:sim.pPush,band,edgeO,edgeU,ev,stake,mean:sim.mean,hist:sim.hist,
+    factors:{rate,pace,pBlow,minutes,se},version:MODEL_VERSION,ts:now};
+}
+function wilson(k,n){if(!n)return[0,1];const z=1.96,p=k/n,d=1+z*z/n,c=p+z*z/(2*n),h=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n));return[(c-h)/d,(c+h)/d]}
+function maxDrawdown(profits){let peak=0,cum=0,dd=0;for(const x of profits){cum+=x;peak=Math.max(peak,cum);dd=Math.max(dd,peak-cum)}return dd}
+function meanCI(xs){const n=xs.length;if(!n)return{m:NaN,lo:NaN,hi:NaN};const m=xs.reduce((a,b)=>a+b,0)/n;if(n<2)return{m,lo:NaN,hi:NaN};const v=xs.reduce((a,b)=>a+(b-m)*(b-m),0)/(n-1);const h=1.96*Math.sqrt(v/n);return{m,lo:m-h,hi:m+h}}
+function validate(records,version){
+  const rs=records.filter(r=>r.out&&!r.out.postMatch&&r.post&&typeof r.post.result==="number"&&(!version||r.out.version===version));
+  const ev=rs.filter(r=>r.post.result!==r.inp.line);
+  const y=ev.map(r=>r.post.result>r.inp.line?1:0);
+  const bm=ev.map((r,i)=>(r.out.pOver-y[i])**2),bk=ev.map((r,i)=>(r.out.market.over-y[i])**2);
+  const diff=ev.map((r,i)=>bm[i]-bk[i]);
+  const buckets=[[0,0.4],[0.4,0.5],[0.5,0.6],[0.6,1.0001]].map(([a,b])=>{const s=ev.map((r,i)=>[r.out.pOver,y[i]]).filter(([p])=>p>=a&&p<b);const k=s.reduce((x,[,yy])=>x+yy,0);const pm=s.length?s.reduce((x,[p])=>x+p,0)/s.length:NaN;return{a,b:Math.min(b,1),n:s.length,pred:pm,obs:s.length?k/s.length:NaN,ci:wilson(k,s.length)}});
+  const bets=rs.filter(r=>r.post.bet&&r.post.side&&r.post.odds>1&&r.post.stake>0);
+  const prof=bets.map(r=>{const res=r.post.result,l=r.inp.line;if(res===l)return 0;const won=r.post.side==="over"?res>l:res<l;return won?r.post.stake*(r.post.odds-1):-r.post.stake});
+  const staked=bets.reduce((a,r)=>a+r.post.stake,0),profit=prof.reduce((a,b)=>a+b,0);
+  const wins=bets.filter((r,i)=>prof[i]>0).length;
+  const clv=bets.filter(r=>r.post.close>1).map(r=>r.post.odds/r.post.close-1);
+  const minErr=rs.filter(r=>typeof r.post.minutes==="number").map(r=>Math.abs(r.post.minutes-r.inp.min));
+  return{n:ev.length,brierModel:meanCI(bm).m,brierMarket:meanCI(bk).m,diff:meanCI(diff),buckets,
+    bets:{n:bets.length,wins,hit:bets.length?wins/bets.length:NaN,staked,profit,roi:staked?profit/staked:NaN,dd:maxDrawdown(prof),clv:meanCI(clv),nClv:clv.length},
+    minMAE:minErr.length?minErr.reduce((a,b)=>a+b,0)/minErr.length:NaN,nMin:minErr.length};
+}
+// CORE-END
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id);
+const KEY="propslab.nba.v1";
+let DB=[];
+try{DB=JSON.parse(localStorage.getItem(KEY)||"[]")||[]}catch(e){DB=[]}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+const pct=(x,d=1)=>isFinite(x)?(x*100).toFixed(d)+" %":"—";
+const fmt=(x,d=2)=>isFinite(x)?x.toFixed(d):"—";
+const signed=(x,d=1)=>isFinite(x)?(x>=0?"+":"")+(x*100).toFixed(d)+" pts":"—";
+function localISO(t){const d=new Date(t-new Date(t).getTimezoneOffset()*6e4);return d.toISOString().slice(0,16)}
+$("ver").textContent="v"+MODEL_VERSION;
+$("f-tip").value=localISO(Date.now()+5*3600e3);
+$("f-checked").value=localISO(Date.now());
+
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));
+  ["analyse","hist","valid","meth"].forEach(id=>$(id).hidden=id!==b.dataset.tab);
+  if(b.dataset.tab==="hist")renderHist();if(b.dataset.tab==="valid")renderValid();
+}));
+
+function readInputs(){
+  const n=id=>{const v=$(id).value.trim().replace(",",".");return v===""?NaN:Number(v)};
+  return{player:$("f-player").value.trim(),opp:$("f-opp").value.trim(),tip:$("f-tip").value,stat:$("f-stat").value,line:n("f-line"),book:$("f-book").value.trim(),
+    co:n("f-co"),cu:n("f-cu"),tot:n("f-tot"),spr:Math.abs(n("f-spr")),rs:n("f-rs"),ns:n("f-ns"),rr:n("f-rr"),min:n("f-min"),sd:n("f-sd"),msrc:$("f-msrc").value,
+    b2b:$("f-b2b").checked,abs:$("f-abs").checked,checked:$("f-checked").value};
+}
+function histSVG(h,line){
+  let last=h.length-1;while(last>0&&h[last]===0)last--;const first=Math.max(0,h.findIndex(x=>x>0));
+  const xs=[];for(let i=first;i<=last;i++)xs.push(i);const max=Math.max(...xs.map(i=>h[i]));
+  const W=Math.max(320,xs.length*12),H=150,bw=W/xs.length;
+  const bars=xs.map((v,j)=>{const hh=(h[v]/max)*(H-30);return`<rect x="${(j*bw+1).toFixed(1)}" y="${(H-20-hh).toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${hh.toFixed(1)}" rx="2" fill="${v>line?"var(--accent)":"var(--line)"}"><title>${v} : ${(h[v]/100).toFixed(1)} %</title></rect>`}).join("");
+  const step=Math.ceil(xs.length/8);const ticks=xs.map((v,j)=>j%step===0?`<text x="${(j*bw+bw/2).toFixed(1)}" y="${H-4}" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono,monospace">${v}</text>`:"").join("");
+  return`<svg role="img" aria-label="Distribution simulée, barres orange au-dessus de la ligne" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${bars}${ticks}</svg>`;
+}
+let lastRun=null;
+function renderOut(inp,o){
+  const out=$("out");
+  if(o.status==="insufficient"){out.innerHTML=`<div class="verdict v-bad"><span class="big">Données insuffisantes</span><ul class="list">${o.issues.map(t=>`<li>${t}</li>`).join("")}</ul></div>`;return}
+  const st=STATS[inp.stat];
+  let cls="v-none",big="Aucune opportunité démontrée",sub="L'avantage est sous 5 points ou n'est pas solide face à l'incertitude du taux.";
+  if(o.side==="over"){cls="v-good";big=`Over ${inp.line} ${st.label.toLowerCase()} : opportunité`;sub=`Avantage ${signed(o.edgeO)}, EV ${fmt(o.ev,3)} par 1 $, mise suggérée ${o.stake.toFixed(1)} %.`}
+  if(o.side==="under"){cls="v-warn";big=`Under ${inp.line} ${st.label.toLowerCase()} : opportunité à confirmer`;sub=`Avantage ${signed(o.edgeU)}, EV ${fmt(o.ev,3)} par 1 $, mise suggérée ${o.stake.toFixed(1)} %. Côté Under non encore validé par tes résultats.`}
+  const f=o.factors;
+  out.innerHTML=`
+  <div class="verdict ${cls}"><span class="big">${big}</span><span>${sub}</span></div>
+  ${o.warns.map(w=>`<p class="flag ${w.lvl}">${w.t}</p>`).join("")}
+  <div class="card">
+    <h3>Probabilités</h3>
+    <div class="metrics">
+      <div class="m"><span>Over, modèle</span><b>${pct(o.pOver)}</b><span>plage ${pct(o.band.overLo,0)} à ${pct(o.band.overHi,0)}</span></div>
+      <div class="m"><span>Over, marché sans marge</span><b>${pct(o.market.over)}</b><span>marge ${pct(o.market.margin)}</span></div>
+      <div class="m"><span>Avantage Over</span><b>${signed(o.edgeO)}</b></div>
+      <div class="m"><span>Avantage Under</span><b>${signed(o.edgeU)}</b></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Pourquoi ce verdict</h3>
+    <ul class="list">
+      <li>Moyenne projetée : <b class="mono">${o.mean.toFixed(1)}</b> ${st.label.toLowerCase()} pour une ligne à ${inp.line}.</li>
+      <li>Taux retenu : <span class="mono">${f.rate.toFixed(3)}</span> / min (70 % saison, 30 % récent${inp.abs?", + usage absence":""}). Incertitude du taux : ±${(1.96*f.se*100).toFixed(0)} % (${inp.ns} matchs).</li>
+      <li>Minutes : <span class="mono">${f.minutes.toFixed(1)}</span>${inp.b2b?" (−1,5 back-to-back)":""}, écart-type ${inp.sd}, risque de blowout ${pct(f.pBlow,0)}.</li>
+      <li>Rythme : ×${f.pace.toFixed(3)} selon le total de ${inp.tot}.</li>
+    </ul>
+  </div>
+  <div class="card"><h3>Distribution simulée (10 000 matchs)</h3><div class="chartbox">${histSVG(o.hist,inp.line)}</div>
+    <p class="small">Calculé le ${new Date(o.ts).toLocaleString("fr-CA")} · modèle v${o.version}</p></div>
+  <div class="btns"><button class="b primary" id="btn-save">Enregistrer cette analyse</button></div>
+  <p class="small" id="save-msg" role="status"></p>`;
+  $("btn-save").addEventListener("click",()=>{
+    DB.unshift({id:Date.now().toString(36),inp,out:{...o,hist:undefined},post:null});save();
+    $("save-msg").textContent="Analyse enregistrée et figée. Ajoute le résultat dans Historique après le match.";
+    $("btn-save").disabled=true;
+  });
+}
+$("btn-run").addEventListener("click",()=>{const inp=readInputs();const o=analyze(inp,Date.now());lastRun={inp,o};renderOut(inp,o)});
+
+function statusPill(r){
+  if(r.out.status==="insufficient")return`<span class="pill p-bad">Données insuffisantes</span>`;
+  if(r.out.postMatch)return`<span class="pill p-bad">Post-match, exclu</span>`;
+  if(r.out.side==="over")return`<span class="pill p-good">Over</span>`;
+  if(r.out.side==="under")return`<span class="pill p-warn">Under</span>`;
+  return`<span class="pill p-none">Pas d'opportunité</span>`;
+}
+function renderHist(){
+  const el=$("hist-list");
+  if(!DB.length){el.innerHTML=`<div class="card empty"><h2>Aucune analyse enregistrée</h2><p>Lance une analyse dans l'onglet Analyse, puis enregistre-la. Après le match, reviens ici pour saisir le résultat, les minutes réelles et la cote de fermeture.</p><div class="btns"><button class="b" id="btn-demo">Charger 3 exemples fictifs</button></div></div>`;
+    $("btn-demo").addEventListener("click",loadDemo);return}
+  el.innerHTML=DB.map(r=>{const p=r.post||{};const st=STATS[r.inp.stat];return`
+  <div class="rec">
+    <div class="rec-top"><b>${r.demo?"[EXEMPLE] ":""}${r.inp.player||"Joueur"} · ${st.label} ${r.inp.line}</b>${statusPill(r)}</div>
+    <p class="small">vs ${r.inp.opp||"—"} · ${new Date(r.inp.tip).toLocaleString("fr-CA")} · Over modèle ${pct(r.out.pOver)} / marché ${pct(r.out.market&&r.out.market.over)} · v${r.out.version}</p>
+    <div class="grid">
+      <label>Résultat réel<input id="r-res-${r.id}" type="number" step="1" inputmode="numeric" value="${p.result??""}"></label>
+      <label>Minutes réelles<input id="r-min-${r.id}" type="number" step="1" inputmode="numeric" value="${p.minutes??""}"></label>
+      <label class="check full"><input type="checkbox" id="r-bet-${r.id}" ${p.bet?"checked":""}> J'ai parié</label>
+      <label>Côté parié<select id="r-side-${r.id}"><option value="">—</option><option value="over" ${p.side==="over"?"selected":""}>Over</option><option value="under" ${p.side==="under"?"selected":""}>Under</option></select></label>
+      <label>Cote prise<input id="r-odds-${r.id}" type="number" step="0.01" inputmode="decimal" value="${p.odds??""}"></label>
+      <label>Mise (% bankroll)<input id="r-stk-${r.id}" type="number" step="0.1" inputmode="decimal" value="${p.stake??""}"></label>
+      <label>Cote de fermeture (même côté)<input id="r-cls-${r.id}" type="number" step="0.01" inputmode="decimal" value="${p.close??""}"></label>
+    </div>
+    <div class="btns"><button class="b" data-save="${r.id}">Enregistrer le résultat</button><button class="b" data-del="${r.id}">Supprimer</button></div>
+  </div>`}).join("");
+  el.querySelectorAll("[data-save]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.dataset.save,r=DB.find(x=>x.id===id);const n=k=>{const v=$(k+id).value.trim().replace(",",".");return v===""?null:Number(v)};
+    r.post={result:n("r-res-"),minutes:n("r-min-"),bet:$("r-bet-"+id).checked,side:$("r-side-"+id).value||null,odds:n("r-odds-"),stake:n("r-stk-"),close:n("r-cls-")};
+    save();b.textContent="Enregistré";
+  }));
+  el.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{
+    if(b.dataset.armed){DB=DB.filter(x=>x.id!==b.dataset.del);save();renderHist()}else{b.dataset.armed="1";b.textContent="Confirmer la suppression"}
+  }));
+}
+function loadDemo(){
+  const base=readInputs();const past=Date.now()-2*864e5;
+  const mk=(o,res,min,bet)=>{const inp={...base,...o,tip:localISO(past),checked:localISO(past-3600e3)};const out=analyze(inp,past-3600e3);delete out.hist;
+    return{id:Math.random().toString(36).slice(2),demo:true,inp,out,post:{result:res,minutes:min,bet,side:bet?out.side:null,odds:bet?(out.side==="over"?inp.co:inp.cu):null,stake:bet?out.stake:null,close:bet?(out.side==="over"?inp.co-0.05:inp.cu-0.05):null}}};
+  DB=[mk({player:"Joueur exemple A",line:15.5},18,30,true),mk({player:"Joueur exemple B",stat:"reb",rs:0.16,rr:0.13,line:4.5},3,24,false),mk({player:"Joueur exemple C",stat:"ast",rs:0.08,rr:0.09,line:2.5},2,27,false)].concat(DB);
+  save();renderHist();
+}
+function renderValid(){
+  const vers=[...new Set(DB.map(r=>r.out.version))];const v=validate(DB,MODEL_VERSION);
+  const enough=v.n>=50,demo=DB.some(r=>r.demo);
+  const dLab=!isFinite(v.diff.lo)?"—":(v.diff.hi<0?"Modèle meilleur que le marché (écart significatif)":v.diff.lo>0?"Marché meilleur que le modèle (écart significatif)":"Pas de différence démontrée");
+  $("valid-out").innerHTML=`
+  ${demo?`<p class="flag warn">Des exemples fictifs sont inclus dans ces chiffres. Supprime-les avant de juger le modèle.</p>`:""}
+  <div class="verdict ${enough?"v-none":"v-bad"}"><span class="big">${enough?v.n+" résultats évaluables":"Données insuffisantes ("+v.n+" / 50 minimum)"}</span><span>Version v${MODEL_VERSION}${vers.length>1?" · autres versions dans l'historique : "+vers.filter(x=>x!==MODEL_VERSION).join(", "):""}. Les analyses post-match sont exclues.</span></div>
+  <div class="card"><h3>Précision des probabilités (Brier, plus bas = mieux)</h3>
+    <div class="metrics">
+      <div class="m"><span>Modèle</span><b>${fmt(v.brierModel,4)}</b></div>
+      <div class="m"><span>Marché sans marge</span><b>${fmt(v.brierMarket,4)}</b></div>
+      <div class="m"><span>Pile ou face (référence)</span><b>0.2500</b></div>
+      <div class="m"><span>Écart modèle − marché</span><b>${fmt(v.diff.m,4)}</b><span>IC 95 % ${fmt(v.diff.lo,4)} à ${fmt(v.diff.hi,4)}</span></div>
+    </div><p class="small">${dLab}. C'est le test principal : battre le marché, pas seulement pile ou face.</p></div>
+  <div class="card"><h3>Calibration (P(Over) prédite contre observée)</h3><div class="tbl"><table>
+    <thead><tr><th>Tranche</th><th>n</th><th>Prédit</th><th>Observé</th><th>IC 95 %</th></tr></thead><tbody>
+    ${v.buckets.map(b=>`<tr><td>${Math.round(b.a*100)}–${Math.round(b.b*100)} %</td><td class="num">${b.n}</td><td class="num">${pct(b.pred,0)}</td><td class="num">${pct(b.obs,0)}</td><td class="num">${b.n?pct(b.ci[0],0)+"–"+pct(b.ci[1],0):"—"}</td></tr>`).join("")}
+    </tbody></table></div><p class="small">Une tranche sous 30 résultats ne permet aucune conclusion : l'intervalle est trop large.</p></div>
+  <div class="card"><h3>Paris réellement pris</h3>
+    <div class="metrics">
+      <div class="m"><span>Paris réglés</span><b>${v.bets.n}</b></div>
+      <div class="m"><span>Taux de réussite</span><b>${pct(v.bets.hit)}</b></div>
+      <div class="m"><span>ROI</span><b>${pct(v.bets.roi)}</b><span>profit ${fmt(v.bets.profit,2)} % bankroll</span></div>
+      <div class="m"><span>Perte max. observée</span><b>${fmt(v.bets.dd,2)} %</b><span>creux depuis un sommet</span></div>
+      <div class="m"><span>CLV moyenne</span><b>${pct(v.bets.clv.m)}</b><span>${v.bets.nClv} paris · IC ${pct(v.bets.clv.lo)} à ${pct(v.bets.clv.hi)}</span></div>
+      <div class="m"><span>Erreur minutes (moy. abs.)</span><b>${fmt(v.minMAE,1)}</b><span>${v.nMin} matchs</span></div>
+    </div><p class="small">Le taux de réussite seul ne dit rien sans la cote. Juge d'abord la CLV et le Brier contre le marché ; le ROI demande plusieurs centaines de paris pour sortir du bruit.</p></div>`;
+}
+$("btn-json").addEventListener("click",()=>copyOut(JSON.stringify(DB)));
+$("btn-csv").addEventListener("click",()=>{
+  const cols=["id","version","date_analyse","joueur","adversaire","debut","stat","ligne","cote_over","cote_under","total","ecart","taux_saison","matchs","taux_recent","minutes_proj","p_over_modele","p_over_marche","verdict","post_match","resultat","minutes_reelles","parie","cote_prise","mise","cote_fermeture"];
+  const rows=DB.map(r=>{const p=r.post||{};return[r.id,r.out.version,new Date(r.out.ts).toISOString(),r.inp.player,r.inp.opp,r.inp.tip,r.inp.stat,r.inp.line,r.inp.co,r.inp.cu,r.inp.tot,r.inp.spr,r.inp.rs,r.inp.ns,r.inp.rr,r.inp.min,r.out.pOver,r.out.market&&r.out.market.over,r.out.side||r.out.status,r.out.postMatch,p.result,p.minutes,p.bet,p.odds,p.stake,p.close]});
+  copyOut([cols,...rows].map(r=>r.map(x=>{const s=x==null?"":String(x);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(",")).join("\n"));
+});
+function copyOut(text){$("io").value=text;const msg=$("io-msg");
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>msg.textContent="Copié dans le presse-papiers.",()=>{$("io").select();msg.textContent="Copie automatique refusée : le texte est sélectionné, copie-le à la main."})}
+  else{$("io").select();msg.textContent="Texte sélectionné : copie-le à la main."}}
+$("btn-import").addEventListener("click",()=>{try{const arr=JSON.parse($("io").value);if(!Array.isArray(arr))throw 0;const ids=new Set(DB.map(r=>r.id));let k=0;arr.forEach(r=>{if(r&&r.id&&r.inp&&r.out&&!ids.has(r.id)){DB.push(r);k++}});save();$("io-msg").textContent=k+" analyse(s) importée(s).";renderHist()}catch(e){$("io-msg").textContent="Ce texte n'est pas une sauvegarde valide. Colle le JSON copié depuis cette page."}});
+$("btn-clear").addEventListener("click",e=>{const b=e.currentTarget;if(b.dataset.armed){DB=[];save();renderHist();b.textContent="Tout effacer";delete b.dataset.armed;$("io-msg").textContent="Historique effacé."}else{b.dataset.armed="1";b.textContent="Confirmer : tout effacer"}});
+$("btn-run").click();
+</script>
+</body>
+</html>
